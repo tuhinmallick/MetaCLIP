@@ -62,7 +62,7 @@ def save_checkpoint(model, optimizer, scaler, completed_epoch, args):
         if args.save_most_recent:
             torch.save(
                 checkpoint_dict,
-                os.path.join(args.checkpoint_path, f"epoch_latest.pt"),
+                os.path.join(args.checkpoint_path, "epoch_latest.pt"),
             )
 
 
@@ -189,7 +189,7 @@ def main(args=None):
     if args.distributed and not args.horovod:
         if args.use_bn_sync:
             model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
-        
+
         if args.distributed_engine == 'ddp':
             ddp_args = {}
             if args.ddp_static_graph:
@@ -228,11 +228,7 @@ def main(args=None):
             hvd.broadcast_parameters(model.state_dict(), root_rank=0)
             hvd.broadcast_optimizer_state(optimizer, root_rank=0)
 
-        if args.precision == "amp":
-            scaler = GradScaler()
-        else:
-            scaler = None
-
+        scaler = GradScaler() if args.precision == "amp" else None
     # optionally resume from a checkpoint
     start_epoch = 0
     start_epoch_step = 0
@@ -263,7 +259,7 @@ def main(args=None):
                 model.load_state_dict(checkpoint)
                 logging.info(f"=> loaded checkpoint '{args.resume}' (epoch {start_epoch})")
         else:
-            logging.info("=> no checkpoint found at '{}'".format(args.resume))
+            logging.info(f"=> no checkpoint found at '{args.resume}'")
 
     # initialize datasets
     data = get_data(args, (preprocess_train, preprocess_val), epoch=start_epoch)

@@ -35,13 +35,11 @@ def save_checkpoint(model, optimizer, scaler, epoch, i, args):
     if scaler is not None:
         checkpoint_dict["scaler"] = scaler.state_dict()
 
-    # Saving checkpoints. use eval_steps to save a checkpoint.
-    if args.save_logs:  # master_only.
-        # epoch saving is removed. only save `epoch_latest.pt`.
+    if args.save_logs:
         if args.save_most_recent:
             torch.save(
                 checkpoint_dict,
-                os.path.join(args.checkpoint_path, f"epoch_latest.pt"),
+                os.path.join(args.checkpoint_path, "epoch_latest.pt"),
             )
 
 
@@ -64,10 +62,7 @@ class AverageMeter(object):
 
 
 def unwrap_model(model):
-    if hasattr(model, 'module'):
-        return model.module
-    else:
-        return model
+    return model.module if hasattr(model, 'module') else model
 
 
 def to_device(batch, device, args):
@@ -201,7 +196,7 @@ def train_one_epoch_ex(model, data, epoch, epoch_step, optimizer, scaler, schedu
                 "lr": optimizer.param_groups[0]["lr"]
             }
             for name, val in log_data.items():
-                name = "train/" + name
+                name = f"train/{name}"
                 if tb_writer is not None:
                     tb_writer.add_scalar(name, val, step)
                 if args.wandb:
@@ -214,7 +209,7 @@ def train_one_epoch_ex(model, data, epoch, epoch_step, optimizer, scaler, schedu
 
         if hasattr(args, "save_steps") and (step + 1) % args.save_steps == 0:
             save_checkpoint(model, optimizer, scaler, epoch, i, args)
-    
+
         # TODO: copied from main.py, wrap as a function call.
         if hasattr(args, "eval_steps") and (step + 1) % args.eval_steps == 0: # TODO (huxu): put eval on master only?
             if any(v in data for v in ('val', 'imagenet-val', 'imagenet-v2')):
@@ -315,7 +310,7 @@ def train_one_epoch(model, data, epoch, optimizer, scaler, scheduler, args, tb_w
                 "lr": optimizer.param_groups[0]["lr"]
             }
             for name, val in log_data.items():
-                name = "train/" + name
+                name = f"train/{name}"
                 if tb_writer is not None:
                     tb_writer.add_scalar(name, val, step)
                 if args.wandb:

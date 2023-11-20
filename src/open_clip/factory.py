@@ -18,7 +18,7 @@ from .pretrained import get_pretrained_url, download_pretrained
 from .transform import image_transform
 
 
-_MODEL_CONFIG_PATHS = [Path(__file__).parent / f"model_configs/"]
+_MODEL_CONFIG_PATHS = [Path(__file__).parent / "model_configs/"]
 _MODEL_CONFIGS = {}  # directory (model_name: config) of model architecture configs
 
 
@@ -44,7 +44,9 @@ def _rescan_model_configs():
             if all(a in model_cfg for a in ('embed_dim', 'vision_cfg', 'text_cfg')):
                 _MODEL_CONFIGS[cf.stem] = model_cfg
 
-    _MODEL_CONFIGS = {k: v for k, v in sorted(_MODEL_CONFIGS.items(), key=lambda x: _natural_key(x[0]))}
+    _MODEL_CONFIGS = dict(
+        sorted(_MODEL_CONFIGS.items(), key=lambda x: _natural_key(x[0]))
+    )
 
 
 _rescan_model_configs()  # initial populate of model config registry
@@ -64,8 +66,7 @@ def load_state_dict(checkpoint_path: str, map_location='cpu'):
 def load_checkpoint(model, checkpoint_path, strict=True):
     state_dict = load_state_dict(checkpoint_path)
     resize_pos_embed(state_dict, model)
-    incompatible_keys = model.load_state_dict(state_dict, strict=strict)
-    return incompatible_keys
+    return model.load_state_dict(state_dict, strict=strict)
 
 
 def create_model(
@@ -84,7 +85,7 @@ def create_model(
         logging.info(f'Loading pretrained {model_name} from OpenAI.')
         model = load_openai_model(model_name, device=device, jit=jit)
         # See https://discuss.pytorch.org/t/valueerror-attemting-to-unscale-fp16-gradients/81372
-        if precision == "amp" or precision == "fp32":
+        if precision in {"amp", "fp32"}:
             model = model.float()
     else:
         if model_name in _MODEL_CONFIGS:
@@ -110,8 +111,7 @@ def create_model(
 
         if pretrained:
             checkpoint_path = ''
-            url = get_pretrained_url(model_name, pretrained)
-            if url:
+            if url := get_pretrained_url(model_name, pretrained):
                 checkpoint_path = download_pretrained(url)
             elif os.path.exists(pretrained):
                 checkpoint_path = pretrained

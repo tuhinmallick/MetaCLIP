@@ -52,10 +52,9 @@ def grab(line):
             return uid, caption, url
         except:
             print("Failed", uid, url)
-            
+
     except Exception as e:
         print("Unknown error", e)
-        pass
 
 if __name__ == "__main__":
     ROOT = "cc_data"
@@ -68,28 +67,26 @@ if __name__ == "__main__":
             os.mkdir(os.path.join(ROOT,"train", str(i)))
             os.mkdir(os.path.join(ROOT,"val", str(i)))
 
-    
+
     p = mp.Pool(300)
-    
+
     for tsv in sys.argv[1:]:
         print("Processing file", tsv)
         assert 'val' in tsv.lower() or 'train' in tsv.lower()
         split = 'val' if 'val' in tsv.lower() else 'train'
         results = p.map(grab,
                         [(i,split,x) for i,x in enumerate(open(tsv).read().split("\n"))])
-        
-        out = open(tsv.replace(".tsv","_output.csv"),"w")
-        out.write("title\tfilepath\n")
-        
-        for row in results:
-            if row is None: continue
-            id, caption, url = row
-            fp = os.path.join(ROOT, split, str(id % 1000), str(id) + ".jpg")
-            if os.path.exists(fp):
-                out.write("%s\t%s\n"%(caption,fp))
-            else:
-                print("Drop", id)
-        out.close()
-        
+
+        with open(tsv.replace(".tsv","_output.csv"),"w") as out:
+            out.write("title\tfilepath\n")
+
+            for row in results:
+                if row is None: continue
+                id, caption, url = row
+                fp = os.path.join(ROOT, split, str(id % 1000), f"{str(id)}.jpg")
+                if os.path.exists(fp):
+                    out.write("%s\t%s\n"%(caption,fp))
+                else:
+                    print("Drop", id)
     p.close()
 

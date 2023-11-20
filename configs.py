@@ -121,5 +121,4 @@ def search_config(config_name):
                 if _config_name not in all_configs:
                     all_configs[_config_name] = module
     print(f"launching {config_name} from {all_configs[config_name].__file__}")
-    config = getattr(all_configs[config_name], config_name)()
-    return config
+    return getattr(all_configs[config_name], config_name)()

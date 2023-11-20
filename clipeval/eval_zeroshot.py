@@ -27,7 +27,7 @@ def load_metadata(metadir="clipeval"):
 
 
 def evaluate(d, val_loader, templates, labels, model, tokenizer, classnorm=False):
-    print('Evaluating {}'.format(d))
+    print(f'Evaluating {d}')
 
     is_acc = d not in ['FGVCAircraft', 'OxfordPets', 'Caltech101', 'Flowers102', 'Kinetics700', 'HatefulMemes']
 
@@ -90,7 +90,7 @@ def validate_zeroshot(val_loader, templates, labels, model, tokenizer, is_acc, c
             print('=> encoding captions')
             text_features, mean, std = build_text_features(templates, labels, model, tokenizer, classnorm=classnorm)
 
-        if isinstance(samples, tuple) or isinstance(samples, list):
+        if isinstance(samples, (tuple, list)):
             images, target = samples[0], samples[1]
         elif isinstance(samples, dict):
             images, target = samples["pixel_values"], samples["targets"]
@@ -102,7 +102,7 @@ def validate_zeroshot(val_loader, templates, labels, model, tokenizer, is_acc, c
 
         # encode images
         image_features = model.encode_image(images)
-        
+
         if classnorm:
             image_features = (image_features - mean) / std
 

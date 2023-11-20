@@ -31,8 +31,7 @@ def parse_args():
     parser.add_argument("--partition", default="learnlab", type=str, help="Partition where to submit")
     parser.add_argument("--use_volta32", action='store_true', help="Request 32G V100 GPUs")
     parser.add_argument('--comment', default="", type=str, help="Comment to pass to scheduler")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def get_shared_folder() -> Path:

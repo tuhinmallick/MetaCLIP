@@ -73,8 +73,8 @@ def get_downstream_dataset(catalog, name, is_train, transform):
                 transform=transform, download=True)
     elif entry['type'] == 'filelist':
         path = entry['train'] if is_train else entry['test']
-        val_images = os.path.join(root, path + '_images.npy')
-        val_labels = os.path.join(root, path + '_labels.npy')
+        val_images = os.path.join(root, f'{path}_images.npy')
+        val_labels = os.path.join(root, f'{path}_labels.npy')
         if name == 'CLEVRCounts':
             target_transform = lambda x: ['count_10', 'count_3', 'count_4', 'count_5', 'count_6', 'count_7', 'count_8', 'count_9'].index(x)
         else:
