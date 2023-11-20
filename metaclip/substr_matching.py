@@ -19,12 +19,10 @@ def spacing(text):
 def substr_matching(text, metadata):
     global spaced_metadata
     if spaced_metadata is None:
-        spaced_metadata = []
-        for entry in metadata:
-            spaced_metadata.append(f" {entry} ")
+        spaced_metadata = [f" {entry} " for entry in metadata]
     text = spacing(text)
-    matched_entry_ids = []
-    for entry_id, entry in enumerate(spaced_metadata):
-        if entry in text:
-            matched_entry_ids.append(entry_id)
-    return matched_entry_ids
+    return [
+        entry_id
+        for entry_id, entry in enumerate(spaced_metadata)
+        if entry in text
+    ]

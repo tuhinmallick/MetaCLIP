@@ -9,12 +9,10 @@ from tqdm import tqdm
 
 
 def balance_sampling(matched_entry_ids, entry_prob):
-    # this can be placed in a pipeline or on-the-fly in a data loader.
-    # TODO: add numpy impl.
-    for entry_id in matched_entry_ids:
-        if random.random() < entry_prob[entry_id]:
-            return True
-    return False
+    return any(
+        random.random() < entry_prob[entry_id]
+        for entry_id in matched_entry_ids
+    )
 
 
 def main(input_dir, balanced_dir, t):
@@ -22,7 +20,7 @@ def main(input_dir, balanced_dir, t):
         metadata = json.load(f)
 
     entry_count = np.zeros(shape=(len(metadata),), dtype=np.uint64)  # uint64 to be safe for scaling.
-    
+
     # TODO: add cross json global dedup
     D = []
     for json_file in tqdm(os.listdir(input_dir)):
@@ -43,10 +41,11 @@ def main(input_dir, balanced_dir, t):
 
     D_star = []
     for rec in D:
-        for texts in rec["texts"]:
-            if balance_sampling(texts[2], entry_prob):
-                D_star.append(rec)
-
+        D_star.extend(
+            rec
+            for texts in rec["texts"]
+            if balance_sampling(texts[2], entry_prob)
+        )
     with open(f"{balanced_dir}/curated.json", "w") as fw:
         json.dump(D_star, fw)
 

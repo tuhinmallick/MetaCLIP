@@ -41,7 +41,7 @@ def process_data(raw_data, metadata):
                 orig_text = key_text[1]
                 texts.append([text_key, orig_text, matched_entry_ids])
 
-        if len(texts) > 0:
+        if texts:
             pair["texts"] = texts
             matched_data.append(pair)
     return matched_data
@@ -115,7 +115,7 @@ class WARCCurator(CCCurator):
             if verbose:
                 from tqdm import tqdm
                 record_iter = tqdm(record_iter)
-            for ix, record in enumerate(record_iter):
+            for record in record_iter:
                 if record.rec_type == 'response':
                     htmls.append((record.raw_stream.read().strip(), record.rec_headers.get_header('WARC-Target-URI')))
                     if len(htmls) >= 500:
@@ -234,7 +234,6 @@ class WATCurator(CCCurator):
     def extract_images_from_links(
         self, links, target_uri
     ):
-        results = []
         for link in links:
             if link is None or "path" not in link or link["path"] is None:
                 continue
@@ -258,7 +257,7 @@ class WATCurator(CCCurator):
                 if len(text) == 0:
                     continue
                 texts.append([key, text])
-            
+
             rec = {"uuid": uuid, "url": url, "texts": []}
             # dedup on URL.
             if self.dedup:
@@ -272,7 +271,7 @@ class WATCurator(CCCurator):
             if len(rec["texts"]) > 0:
                 data.append(rec)
 
-        return results
+        return []
 
 
 def process(cc_file, output_file):
